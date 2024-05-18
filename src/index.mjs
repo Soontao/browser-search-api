@@ -13,6 +13,8 @@ if (process.env.PW_REMOTE_URL === undefined) {
 
 const browser = await playwright.chromium.connect(process.env.PW_REMOTE_URL);
 
+console.log("connected to browser", process.env.PW_REMOTE_URL);
+
 const app = express();
 
 app.get("/sogou", async (req, res) => {
