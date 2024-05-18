@@ -23,7 +23,8 @@ app.get("/sogou", async (req, res) => {
     waitUntil: "domcontentloaded",
     timeout: 3000,
   });
-  return res.end(turndownService.turndown(await page.innerHTML()));
+  const results = await page.$(".results");
+  return res.end(turndownService.turndown(await results.innerHTML()));
 });
 
 app.listen(parseInt(process.env.PORT) || 3000, () => {
