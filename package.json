@@ -21,6 +21,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "playwright-core": "^1.44.0",
+    "puppeteer-core": "^22.9.0",
     "turndown": "^7.1.3"
   }
 }

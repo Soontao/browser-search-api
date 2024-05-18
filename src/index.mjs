@@ -1,7 +1,7 @@
 import console from "console";
 import express from "express";
-import playwright from "playwright-core";
 import process from "process";
+import puppeteer from "puppeteer-core";
 import { asyncExpressMiddleware, defaultUserAgent } from "./utils.mjs";
 
 if (process.env.PW_REMOTE_URL === undefined) {
@@ -9,48 +9,44 @@ if (process.env.PW_REMOTE_URL === undefined) {
   process.exit(1);
 }
 
-const browser = await playwright.chromium.connect(process.env.PW_REMOTE_URL);
-
-console.log("connected to browser", process.env.PW_REMOTE_URL);
-
 const app = express();
 
 app.get(
   "/sogou",
   asyncExpressMiddleware(async (req, res) => {
     const { search } = req.query;
-    const context = await browser.newContext({
-      userAgent: defaultUserAgent(),
-      timezoneId: "Asia/Shanghai",
-      locale: "zh-CN",
+    const browser = await puppeteer.connect({
+      browserWSEndpoint: process.env.PW_REMOTE_URL,
     });
-    const page = await context.newPage();
+    const page = await browser.newPage();
+    await page.setUserAgent(defaultUserAgent());
     await page.goto(`https://www.sogou.com/web?query=${search}`, {
-      waitUntil: "domcontentloaded",
-      timeout: 1000,
+      waitUntil: "load",
+      referer: "https://www.sogou.com/",
     });
     const results = await page.$(".results");
     const cards = await results.$$(".vrwrap");
-    const refLinks = [];
-    // for each links
-    for (const card of cards) {
-      const linkEle = await card.$("h3 a");
-      if (!linkEle) continue;
-      const href = await linkEle.getAttribute("href");
-      const link = `https://www.sogou.com${href}`;
-      const title = await linkEle.innerText();
-      const description = await (await card.$(".space-txt"))?.innerText?.();
-      const img = await (await card.$("img"))?.getAttribute?.("src");
-
-      refLinks.push({
-        title,
-        link,
-        description,
-        img,
-      });
-    }
-    await context.close();
-    return res.json(refLinks);
+    const refLinks = await Promise.all(
+      cards.map((card) => {
+        return card.evaluate((node) => {
+          const linkEle = node.querySelector("h3 a");
+          if (!linkEle) return;
+          const link = linkEle.href;
+          // get text
+          const title = linkEle.innerText;
+          const description = node.querySelector(".space-txt")?.innerText;
+          const img = node.querySelector("img")?.src;
+          return {
+            title,
+            link,
+            description,
+            img,
+          };
+        });
+      }),
+    );
+    await browser.close();
+    return res.json(refLinks.filter(Boolean));
   }),
 );
 
