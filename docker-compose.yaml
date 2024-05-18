@@ -1,0 +1,20 @@
+version: "3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PW_REMOTE_URL: ws://browserless:3000?token=us5W3elErSluCvyCwMPzC0ntA
+    restart: always
+  browserless:
+    image: ghcr.io/browserless/chromium
+    environment:
+      - CONCURRENT=10
+      - TOKEN=us5W3elErSluCvyCwMPzC0ntA
+      - MAX_CPU_PERCENT=40
+      - MAX_MEMORY_PERCENT=40
+      - HEALTH=true
+      - QUEUED=20
+    restart: always
