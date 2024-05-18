@@ -1,0 +1,74 @@
+openapi: 3.0.1
+info:
+  title: Web Search API
+  description: API for performing searches on the web.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local server
+paths:
+  /sogou:
+    get:
+      summary: Perform a search on Sogou
+      description: Returns search results from Sogou based on the query parameter.
+      parameters:
+        - name: search
+          in: query
+          required: true
+          description: The search query.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A JSON array of search results.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                      description: The title of the search result.
+                      example: "Example Search Result Title"
+                    link:
+                      type: string
+                      description: The URL of the search result.
+                      example: "https://example.com"
+                    description:
+                      type: string
+                      description: A brief description of the search result.
+                      example: "This is an example description of a search result."
+                    img:
+                      type: string
+                      description: The URL of an image associated with the search result.
+                      example: "https://example.com/image.jpg"
+        "400":
+          description: Bad request, search query parameter is missing.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "search query parameter is required"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: x-api-key
+      in: header
+security:
+  - apiKey: []
