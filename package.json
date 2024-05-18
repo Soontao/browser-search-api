@@ -1,0 +1,21 @@
+{
+  "name": "js-project-template",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node --test ./test",
+    "lint": "eslint src/** --fix",
+    "release": "npx standard-version --no-verify && git push --follow-tags origin main",
+    "format": "npx prettier -w src"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.2.5"
+  }
+}
