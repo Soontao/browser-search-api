@@ -21,7 +21,8 @@ app.get(
     const page = await browser.newPage();
     await page.setUserAgent(defaultUserAgent());
     await page.goto(`https://www.sogou.com/web?query=${search}`, {
-      waitUntil: "load",
+      waitUntil: "networkidle0",
+      timeout: 30_000,
       referer: "https://www.sogou.com/",
     });
     const results = await page.$(".results");
