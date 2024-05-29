@@ -1,12 +1,10 @@
-version: "3"
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  search-api:
+    image: theosun/browser-search-api:latest
     environment:
       NODE_ENV: production
       PW_REMOTE_URL: ws://browserless:3000?token=us5W3elErSluCvyCwMPzC0ntA
+      TF_URL: http://trafilatura-api:5000
     restart: always
   browserless:
     image: ghcr.io/browserless/chromium
@@ -17,4 +15,7 @@ services:
       - MAX_MEMORY_PERCENT=40
       - HEALTH=true
       - QUEUED=20
+    restart: always
+  trafilatura-api:
+    image: theosun/trafilatura-api:latest
     restart: always
