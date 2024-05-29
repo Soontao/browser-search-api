@@ -22,13 +22,46 @@ app.get(
 );
 
 app.get(
+  "/weixin",
+  createCommonSearchAPI({
+    urlPrefix: "https://weixin.sogou.com/weixin?type=2&query=",
+    resultsItemSelector: ".news-box .news-list li",
+    titleSelector: "h3 a",
+    linkSelector: "h3 a",
+    descriptionSelector: ".txt-info",
+  }),
+);
+
+app.get(
+  "/zhihu",
+  createCommonSearchAPI({
+    urlPrefix: "https://sogou.com/web?insite=zhihu.com&query=",
+    resultsItemSelector: ".results .vrwrap",
+    titleSelector: "h3 a",
+    linkSelector: "h3 a",
+    descriptionSelector: ".str-text-info",
+  }),
+);
+
+app.get(
+  "/baike",
+  createCommonSearchAPI({
+    urlPrefix: "https://sogou.com/web?insite=baike.baidu.com&query=",
+    resultsItemSelector: ".results .vrwrap",
+    titleSelector: "h3 a",
+    linkSelector: "h3 a",
+    descriptionSelector: ".str-text-info",
+  }),
+);
+
+app.get(
   "/bing",
   createCommonSearchAPI({
     urlPrefix: "https://cn.bing.com/search?q=",
-    resultsItemSelector: "#b_results .b_algo",
-    titleSelector: ".b_tpcn a",
-    linkSelector: ".b_tpcn a",
-    descriptionSelector: ".tptxt",
+    resultsItemSelector: "#b_content #b_results li.b_algo",
+    titleSelector: "h2 a",
+    linkSelector: "h2 a",
+    descriptionSelector: ".b_caption, p.b_algoSlug",
   }),
 );
 

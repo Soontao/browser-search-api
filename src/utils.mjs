@@ -42,17 +42,16 @@ export function createCommonSearchAPI(options) {
 
     await page.goto(`${options.urlPrefix}${search}`, {
       waitUntil: "networkidle0",
-      timeout: 30_000,
-      referer: "https://cn.bing.com/",
+      timeout: 10_000,
+      referer: options.urlPrefix,
     });
 
     const cards = await page.$$(options.resultsItemSelector);
 
     const searchResults = await Promise.all(
-      cards.map(async (card) => {
-        const item = await card.evaluate((node, options) => {
-          const linkEle = node.querySelector(options.linkSelector);
-          const link = linkEle?.href;
+      cards.map((card) => {
+        return card.evaluate((node, options) => {
+          const link = node.querySelector(options.linkSelector)?.href;
           const title = node.querySelector(options.titleSelector)?.innerText;
           const description = node.querySelector(
             options.descriptionSelector,
@@ -63,11 +62,22 @@ export function createCommonSearchAPI(options) {
             description,
           };
         }, options);
-        if (!item?.link) return;
-        if (!process.env.TF_URL) {
-          console.warn("TF_URL is not set, skipping text extraction");
-          return item;
-        }
+      }),
+    );
+
+    const validSearchResults = searchResults
+      .filter((i) => i.link)
+      .slice(0, parseInt(req.query.top ?? 100));
+
+    await browser.close();
+
+    if (!process.env.TF_URL) {
+      console.warn("TF_URL is not set, skipping text extraction");
+      return validSearchResults;
+    }
+
+    await Promise.all(
+      validSearchResults.map(async (item) => {
         try {
           const res = await axios.post(
             process.env.TF_URL + "/extract",
@@ -75,23 +85,20 @@ export function createCommonSearchAPI(options) {
             {
               headers: {
                 "Content-Type": "application/json",
-                "User-Agent": defaultUserAgent(),
               },
-              timeout: 5_000,
+              timeout: 2_000,
             },
           );
           if (res.status < 300 && res.data?.text) {
-            return { ...item, text: res.data };
+            item.text = res.data.text;
           }
         } catch (error) {
           console.error("Failed to extract text", error.message, item.link);
         }
-
-        return item;
       }),
     );
-    await browser.close();
-    return res.json(searchResults.filter(Boolean));
+
+    return res.json(validSearchResults.filter(Boolean));
   });
 }
 
