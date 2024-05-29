@@ -61,6 +61,10 @@ export function createCommonSearchAPI(options) {
           };
         }, options);
         if (!item?.link) return;
+        if (!process.env.TF_URL) {
+          console.warn("TF_URL is not set, skipping text extraction");
+          return item;
+        }
         const res = await fetch(process.env.TF_URL + "/extract", {
           method: "POST",
           headers: {
