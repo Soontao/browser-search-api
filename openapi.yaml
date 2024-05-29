@@ -124,12 +124,3 @@ paths:
                   error:
                     type: string
                     example: "Internal Server Error"
-
-components:
-  securitySchemes:
-    apiKey:
-      type: apiKey
-      name: x-api-key
-      in: header
-security:
-  - apiKey: []
