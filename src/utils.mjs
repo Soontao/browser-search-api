@@ -31,6 +31,9 @@ export function asyncExpressMiddleware(fn) {
 export function createCommonSearchAPI(options) {
   return asyncExpressMiddleware(async (req, res) => {
     const { search } = req.query;
+    if (!search) {
+      return res.status(400).json({ error: "search query is required" });
+    }
     const browser = await puppeteer.connect({
       browserWSEndpoint: process.env.PW_REMOTE_URL,
     });
