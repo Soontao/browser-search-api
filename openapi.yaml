@@ -9,7 +9,7 @@ servers:
 paths:
   /sogou:
     get:
-      operationId: Sogou Search
+      operationId: sogou_search
       summary: Perform a search on Sogou
       description: Returns search results from Sogou based on the query parameter.
       parameters:
@@ -68,7 +68,7 @@ paths:
 
   /bing:
     get:
-      operationId: Bing Search
+      operationId: bing_search
       summary: Perform a search on Bing
       description: Returns search results from Sogou based on the query parameter.
       parameters:
