@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@newdash/newdash": "^5.22.1",
+    "axios": "^1.7.2",
     "express": "^4.19.2",
     "puppeteer-core": "^22.9.0",
     "turndown": "^7.1.3",
