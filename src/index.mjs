@@ -67,6 +67,59 @@ app.get(
   }),
 );
 
+app.get(
+  "/bing",
+  asyncExpressMiddleware(async (req, res) => {
+    const { search } = req.query;
+    const browser = await puppeteer.connect({
+      browserWSEndpoint: process.env.PW_REMOTE_URL,
+    });
+    const page = await browser.newPage();
+    await page.setUserAgent(defaultUserAgent());
+    await page.goto(`https://cn.bing.com/search?q=${search}`, {
+      waitUntil: "networkidle0",
+      timeout: 30_000,
+      referer: "https://cn.bing.com/",
+    });
+    const results = await page.$("#b_results");
+    const cards = await results.$$(".b_algo");
+
+    const refLinks = await Promise.all(
+      cards.map(async (card) => {
+        const item = await card.evaluate((node) => {
+          const linkEle = node.querySelector(".b_tpcn a");
+          if (!linkEle) return;
+          const link = linkEle.href;
+
+          // get text
+          const title = linkEle.innerText;
+          const description = node.querySelector(".tptxt")?.innerText;
+          return {
+            title,
+            link,
+            description,
+          };
+        });
+        if (!item?.link) return;
+        const res = await fetch(process.env.TF_URL + "/extract", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": defaultUserAgent(),
+          },
+          body: JSON.stringify({ url: item.link }),
+        });
+        if (!res.ok) return item;
+        const data = await res.json();
+        if (!data.text) return item;
+        return { ...item, text: data.text };
+      }),
+    );
+    await browser.close();
+    return res.json(refLinks.filter(Boolean));
+  }),
+);
+
 app.listen(parseInt(process.env.PORT) || 3000, () => {
   console.log("Server is running");
 });
