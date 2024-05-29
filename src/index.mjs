@@ -2,6 +2,7 @@ import console from "console";
 import express from "express";
 import process from "process";
 import puppeteer from "puppeteer-core";
+import { fetch } from "undici";
 import { asyncExpressMiddleware, defaultUserAgent } from "./utils.mjs";
 
 if (process.env.PW_REMOTE_URL === undefined) {
@@ -27,12 +28,14 @@ app.get(
     });
     const results = await page.$(".results");
     const cards = await results.$$(".vrwrap");
+
     const refLinks = await Promise.all(
-      cards.map((card) => {
-        return card.evaluate((node) => {
+      cards.map(async (card) => {
+        const item = await card.evaluate((node) => {
           const linkEle = node.querySelector("h3 a");
           if (!linkEle) return;
           const link = linkEle.href;
+
           // get text
           const title = linkEle.innerText;
           const description = node.querySelector(".space-txt")?.innerText;
@@ -44,6 +47,19 @@ app.get(
             img,
           };
         });
+        if (!item?.link) return;
+        const res = await fetch(process.env.TF_URL + "/extract", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": defaultUserAgent(),
+          },
+          body: JSON.stringify({ url: item.link }),
+        });
+        if (!res.ok) return item;
+        const data = await res.json();
+        if (!data.text) return item;
+        return { ...item, text: data.text };
       }),
     );
     await browser.close();
